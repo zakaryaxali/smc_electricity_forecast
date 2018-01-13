@@ -86,7 +86,7 @@ class ParticleFilter():
         print("new ESS=",round(1/sum(np.square(w)),6))
         return x,w,ESS,lh_y_n,sigma_s,sigma_g,g_h,s
 
-    def resample_multinomial(x_temp, w_temp, sigma_s, sigma_g, g_h, s, M):
+    def resample_multinomial(self,x_temp, w_temp, sigma_s, sigma_g, g_h, s, M):
         multinomial = np.random.multinomial(1,w_temp,M)
         new_x = np.zeros(M)
         new_s = np.zeros(M)
@@ -105,27 +105,31 @@ class ParticleFilter():
 
         return new_x,new_w,new_sigma_s,new_sigma_g,new_g_heat,new_s
 
-    def particle_filter(self, nbdays_pred_today, len_init, len_filtering, s, g_h, sigma_s, sigma_g, sigma, lh_y):
+    def particle_filter(self, nbdays_pred_today, len_init, len_filtering, s, g_h, sigma_s, sigma_g, sigma):
         lh_y_n = np.zeros(len_filtering)
         x_pred = np.zeros([len_filtering,self.M])
         x_pred_mean = np.zeros(len_filtering)
         ESS = np.zeros(len_filtering)
-
+        
         sigma_s = self.sigma_s_init
         sigma_g = self.sigma_g_init
+        s_prev = s
+        g_h_prev= g_h
         for n in range(1,len_filtering):
             print("n=",n)
             #prediction X[n] one day ahead, hourly forecast
-            x_s, s, sigma_s = self.compute_x_season(int(self.daytype[len_init + n + nbdays_pred_today]), self.kappa, s, sigma_s)
-            x_h, g_h, sigma_g = self.compute_x_heat(g_h, n + len_init + nbdays_pred_today, sigma_g)
-            x_pred[n,:] = x_s[0] + x_h[0]
+            x_s, s_current, sigma_s = self.compute_x_season(int(self.daytype[len_init + n + nbdays_pred_today]), self.kappa, s_prev, sigma_s)
+            x_h, g_h_current, sigma_g = self.compute_x_heat(g_h_prev, n + len_init + nbdays_pred_today, sigma_g)
+            s_prev=s_current
+            g_h_prev=g_h_current
+            x_pred[n,:] = x_s + x_h
             #print("number of negative values:",len(x_pred[x_pred<0]))
             print("x_pred_mean =","{:.2e}".format(np.mean(x_pred[n,:])),
                   "real consumption=","{:.2e}".format(self.consumption_day_ahead[n]))
             print("x_pred min=","{:.2e}".format(np.min(x_pred[n,:])),"x_pred max","{:.2e}".format(np.max(x_pred[n,:])))
             #take new values of parameters to feed x_season and x_heat in the next step
             #regularization
-            self.x[n,:], self.w[n,:], ESS[n], self.lh_y_n[n], sigma_s, sigma_g, g_h, s = self.resample(x_pred[n,:],
+            x_pred[n,:], self.w[n,:], ESS[n], self.lh_y_n[n], sigma_s, sigma_g, g_h, s = self.resample(x_pred[n,:],
                                                                                                       self.w[n-1,:],
                                                                                                       nbdays_pred_today,
                                                                                                       len_init,
@@ -151,8 +155,7 @@ class ParticleFilter():
                                                                               self.g_heat_init,
                                                                               self.sigma_s_init,
                                                                               self.sigma_g_init,
-                                                                              self.sigma2**0.5,
-                                                                              self.lh_y_n)
+                                                                              self.sigma2**0.5)
 
         return x_predict, ESS_calc
 
@@ -198,7 +201,7 @@ class ParticleFilter():
                                           sigma_s_current,
                                           sigma_g_current,
                                           sigma_current,
-                                          self.lh_y_n)[0]
+                                          )[0]
 
         print("log_lh_init[len_filter_pmmh-1]=",log_lh_init[len_filter_pmmh-1])
 
@@ -226,7 +229,7 @@ class ParticleFilter():
                                              sigma_s_prop,
                                              sigma_g_prop,
                                              sigma_prop,
-                                             self.lh_y_n)[0]
+                                             )[0]
             print("log likelihood proposal of y:",np.sum(lh_y_prop))
 
             #2/generate prior proposals and compute joint log density of them

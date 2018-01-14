@@ -110,7 +110,7 @@ class ParticleFilter():
         x_pred = np.zeros([len_filtering,self.M])
         x_pred_mean = np.zeros(len_filtering)
         ESS = np.zeros(len_filtering)
-        
+
         sigma_s = self.sigma_s_init
         sigma_g = self.sigma_g_init
         s_prev = s
@@ -129,7 +129,7 @@ class ParticleFilter():
             print("x_pred min=","{:.2e}".format(np.min(x_pred[n,:])),"x_pred max","{:.2e}".format(np.max(x_pred[n,:])))
             #take new values of parameters to feed x_season and x_heat in the next step
             #regularization
-            x_pred[n,:], self.w[n,:], ESS[n], self.lh_y_n[n], sigma_s, sigma_g, g_h, s = self.resample(x_pred[n,:],
+            x_pred[n,:], self.w[n,:], ESS[n], lh_y_n[n], sigma_s, sigma_g, g_h, s = self.resample(x_pred[n,:],
                                                                                                       self.w[n-1,:],
                                                                                                       nbdays_pred_today,
                                                                                                       len_init,

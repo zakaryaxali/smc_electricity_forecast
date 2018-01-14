@@ -55,7 +55,7 @@ class ParticleFilter():
         else:
             w_ = w_prev
         #likelihood of y_n
-        lh_y_n = np.sum(delta_cons_gaus)+(n/2)*np.log(sigma)
+        lh_y_n = np.sum(delta_cons_gaus)
         #normalize weights
         w_h = w_/sum(w_)
         #calculate ESS
@@ -110,7 +110,7 @@ class ParticleFilter():
         x_pred = np.zeros([len_filtering,self.M])
         x_pred_mean = np.zeros(len_filtering)
         ESS = np.zeros(len_filtering)
-
+        
         sigma_s = self.sigma_s_init
         sigma_g = self.sigma_g_init
         s_prev = s
@@ -216,7 +216,7 @@ class ParticleFilter():
             u_h_prop = np.random.normal(u_h_current, std_hyp_u, size=1)
             sigma_prop = truncnorm.rvs(a=(0-sigma_current)/std_hyp_sigma, b=np.inf,scale=std_hyp_sigma,loc=sigma_current, size=1)
             sigma_g_prop = truncnorm.rvs(a=(0-sigma_g_current)/std_hyp_sigma_g, b=np.inf,scale=std_hyp_sigma_g,loc=sigma_g_current, size=1)
-            sigma_s_prop = truncnorm.rvs(a=(0-sigma_s_current)/std_hyp_sigma_s, b=np.inf,scale=std_hyp_sigma_s,loc=sigma_s_current size=1)
+            sigma_s_prop = truncnorm.rvs(a=(0-sigma_s_current)/std_hyp_sigma_s, b=np.inf,scale=std_hyp_sigma_s,loc=sigma_s_current, size=1)
             print("proposed parameters:","u_heat:",u_h_prop,"sigma:",sigma_prop,"sigma_g:",sigma_g_prop,"sigma_s:",sigma_s_prop)
 
             #1/run a particle filter with the proposed parameters to obtain a an estimation of likelihood proposed

@@ -118,19 +118,23 @@ class ParticleFilter():
 
         sigma_s = self.sigma_s_init
         sigma_g = self.sigma_g_init
+        s_prev = s
+        g_h_prev= g_h
         for n in range(1,len_filtering):
             print("n=",n)
             #prediction X[n] one day ahead, hourly forecast
-            x_s, s, sigma_s = self.compute_x_season(int(self.daytype[len_init + n + nbdays_pred_today]), self.kappa, s, sigma_s)
-            x_h, g_h, sigma_g = self.compute_x_heat(g_h, n + len_init + nbdays_pred_today, sigma_g)
-            x_pred[n,:] = x_s[0] + x_h[0]
+            x_s, s_current, sigma_s = self.compute_x_season(int(self.daytype[len_init + n + nbdays_pred_today]), self.kappa, s_prev, sigma_s)
+            x_h, g_h_current, sigma_g = self.compute_x_heat(g_h_prev, n + len_init + nbdays_pred_today, sigma_g)
+            s_prev=s_current
+            g_h_prev=g_h_current
+            x_pred[n,:] = x_s + x_h
             #print("number of negative values:",len(x_pred[x_pred<0]))
             print("x_pred_mean =","{:.2e}".format(np.mean(x_pred[n,:])),
                   "real consumption=","{:.2e}".format(self.consumption_day_ahead[n]))
             print("x_pred min=","{:.2e}".format(np.min(x_pred[n,:])),"x_pred max","{:.2e}".format(np.max(x_pred[n,:])))
             #take new values of parameters to feed x_season and x_heat in the next step
             #regularization
-            self.x[n,:], self.w[n,:], ESS[n], self.lh_y_n[n], sigma_s, sigma_g, g_h, s = self.resample(x_pred[n,:],
+            x_pred[n,:], self.w[n,:], ESS[n], lh_y_n[n], sigma_s, sigma_g, g_h, s = self.resample(x_pred[n,:],
                                                                                                       self.w[n-1,:],
                                                                                                       nbdays_pred_today,
                                                                                                       len_init,
@@ -229,9 +233,9 @@ class ParticleFilter():
             #log_likelihood, joint prior density, log proposal density for both current parameters and proposed parameters
             #sample proposal for u_h, sigma, sigma_g, sigma_s
             u_h_prop = np.random.normal(u_h_current, std_hyp_u, size=1)
-            sigma_prop = truncnorm.rvs(a=(0-sigma_current)/std_hyp_sigma, b=np.inf,scale=std_hyp_sigma, size=1)
-            sigma_g_prop = truncnorm.rvs(a=(0-sigma_g_current)/std_hyp_sigma_g, b=np.inf,scale=std_hyp_sigma_g, size=1)
-            sigma_s_prop = truncnorm.rvs(a=(0-sigma_s_current)/std_hyp_sigma_s, b=np.inf,scale=std_hyp_sigma_s, size=1)
+            sigma_prop = truncnorm.rvs(a=(0-sigma_current)/std_hyp_sigma, b=np.inf,scale=std_hyp_sigma,loc=sigma_current, size=1)
+            sigma_g_prop = truncnorm.rvs(a=(0-sigma_g_current)/std_hyp_sigma_g, b=np.inf,scale=std_hyp_sigma_g,loc=sigma_g_current, size=1)
+            sigma_s_prop = truncnorm.rvs(a=(0-sigma_s_current)/std_hyp_sigma_s, b=np.inf,scale=std_hyp_sigma_s,loc=sigma_s_current, size=1)
             print("proposed parameters:","u_heat:",u_h_prop,"sigma:",sigma_prop,"sigma_g:",sigma_g_prop,"sigma_s:",sigma_s_prop)
 
             #1/run a particle filter with the proposed parameters to obtain a an estimation of likelihood proposed

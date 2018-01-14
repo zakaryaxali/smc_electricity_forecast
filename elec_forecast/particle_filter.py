@@ -55,7 +55,7 @@ class ParticleFilter():
         else:
             w_ = w_prev
         #likelihood of y_n
-        lh_y_n = np.sum(delta_cons_gaus)
+        lh_y_n = np.sum(delta_cons_gaus)+(n/2)*np.log(sigma)
         #normalize weights
         w_h = w_/sum(w_)
         #calculate ESS
@@ -129,7 +129,7 @@ class ParticleFilter():
             print("x_pred min=","{:.2e}".format(np.min(x_pred[n,:])),"x_pred max","{:.2e}".format(np.max(x_pred[n,:])))
             #take new values of parameters to feed x_season and x_heat in the next step
             #regularization
-            x_pred[n,:], self.w[n,:], ESS[n], self.lh_y_n[n], sigma_s, sigma_g, g_h, s = self.resample(x_pred[n,:],
+            x_pred[n,:], self.w[n,:], ESS[n], lh_y_n[n], sigma_s, sigma_g, g_h, s = self.resample(x_pred[n,:],
                                                                                                       self.w[n-1,:],
                                                                                                       nbdays_pred_today,
                                                                                                       len_init,
@@ -214,9 +214,9 @@ class ParticleFilter():
             #log_likelihood, joint prior density, log proposal density for both current parameters and proposed parameters
             #sample proposal for u_h, sigma, sigma_g, sigma_s
             u_h_prop = np.random.normal(u_h_current, std_hyp_u, size=1)
-            sigma_prop = truncnorm.rvs(a=(0-sigma_current)/std_hyp_sigma, b=np.inf,scale=std_hyp_sigma, size=1)
-            sigma_g_prop = truncnorm.rvs(a=(0-sigma_g_current)/std_hyp_sigma_g, b=np.inf,scale=std_hyp_sigma_g, size=1)
-            sigma_s_prop = truncnorm.rvs(a=(0-sigma_s_current)/std_hyp_sigma_s, b=np.inf,scale=std_hyp_sigma_s, size=1)
+            sigma_prop = truncnorm.rvs(a=(0-sigma_current)/std_hyp_sigma, b=np.inf,scale=std_hyp_sigma,loc=sigma_current, size=1)
+            sigma_g_prop = truncnorm.rvs(a=(0-sigma_g_current)/std_hyp_sigma_g, b=np.inf,scale=std_hyp_sigma_g,loc=sigma_g_current, size=1)
+            sigma_s_prop = truncnorm.rvs(a=(0-sigma_s_current)/std_hyp_sigma_s, b=np.inf,scale=std_hyp_sigma_s,loc=sigma_s_current size=1)
             print("proposed parameters:","u_heat:",u_h_prop,"sigma:",sigma_prop,"sigma_g:",sigma_g_prop,"sigma_s:",sigma_s_prop)
 
             #1/run a particle filter with the proposed parameters to obtain a an estimation of likelihood proposed

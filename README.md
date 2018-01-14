@@ -1,2 +1,5 @@
-# smc_electricity_forecast
-Projet ENSAE - Modèles à chaîne de Markov cachée et méthodes de Monte Carlo séquentielles - Antoine Grelety, Samir Tanfous, Zakarya Ali
+# ENSAE : Hidden Markov Models & Sequential Monte Carlo Methods
+## On particle filters applied to electricity load forecasting
+Based on the article "On particle filters applied to electricity load forecasting"  
+Code : Antoine Grelety, Samir Tanfous, Zakarya Ali  
+

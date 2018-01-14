@@ -2,7 +2,7 @@ from math import inf, sqrt
 from scipy.stats import truncnorm, invgamma
 import numpy as np
 
-class BootstrapFilterModel():
+class GibbsSamplingModel():
     def __init__(self, temperatures, daytypes, consumptions, nb_days, nb_particles, sigma2, kappa, u_heat):
         """Method to initialize the bootstrap filter model.
         Like in the article, we suppose sigma_s_star and sigma_g_star fixed
@@ -44,7 +44,7 @@ class BootstrapFilterModel():
         return  result
 
 
-    def bf_initialization_gibbs(self, sigma2_s_param=None, sigma2_g_param=None):
+    def gibbs_init(self, sigma2_s_param=None, sigma2_g_param=None):
         """	Method to initialize the bootstrap filter using a Gibbs sampler.
         Like in the article, we suppose sigma_s_star and sigma_g_star fixed
         Parameters :
